@@ -17,11 +17,16 @@ body {
 
 #search-container input[type=text] {
   height: 50%;
+  min-width: 16%;
   width: 18%;
   border-radius: 5px;
-  border: none;
   border: 1px solid lightgray;
   font-size: 1.5rem;
+  transition: all .3s ease;
+}
+
+#search-container input[type=text]:focus{
+  width: 22%;
 }
 
 
@@ -34,12 +39,12 @@ body {
   top: 100%;
   left: 0;
   z-index: 100;
-  width: 100%;
+  width: 22%;
 }
 .dropdown li {
   cursor: pointer;
   list-style-type: none;
-  height: 50px;
+  min-height: 50px;
   padding: 5px;
   display: flex;
   flex-direction: column;
@@ -49,4 +54,10 @@ body {
 }
 .dropdown li:hover {
   background-color: lightsteelblue;
+}
+
+.dropdown ul {
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }

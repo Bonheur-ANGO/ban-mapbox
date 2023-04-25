@@ -1,6 +1,10 @@
 import mapboxgl  from 'mapbox-gl';
 import * as dotenv from 'dotenv';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+import { searchAddress } from './helpers/searchAdress';
+import { displayResults } from './helpers/displayResults';
+import { VectorTile } from '@mapbox/vector-tile';
+import Pbf from 'pbf';
 
 
 
@@ -37,7 +41,7 @@ map.on('load', () => {
         'circle-radius': 8,
         'circle-color': '#FF0000',
         'circle-opacity': 0.8,
-    },
+    }
 });
 
 map.addLayer({
@@ -48,7 +52,7 @@ map.addLayer({
   layout: {
       'text-field': '{numero}{suffixe}',
       'text-font': ['Open Sans Regular'],
-      'text-size': 12,
+      'text-size': 16,
       'text-offset': [0, 1.5],
   },
   paint: {
@@ -57,65 +61,57 @@ map.addLayer({
 });
 
 
+//bdtopo
+map.addSource("bd-topo-routes", {
+  type: "vector",
+  url: "https://wxs.ign.fr/static/vectorTiles/styles/BDTOPO/routier.json"
+});
+
+
+
 });
 
 //console.log(map.queryRenderedFeatures());
 
-/*map.on('click', (e) => {
-  const features = map.queryRenderedFeatures(e.point);
-  
-  if (features.length > 0) {
-    const feature = features[0];
-    
-    console.log('Adresse:', feature);
-}
-});*/
-
-const searchInput = document.getElementById('search-input')
-const ul = document.getElementById('proposition-container');
-const resultsContainer = document.getElementById("results-container");
-
-async function searchAddress(query) {
-  const response = await fetch(
-      `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`
-  );
-  const data = await response.json();
-  return data.features;
-}
-
-
-function displayResults(results) {
-  resultsContainer.style.display = "block"
-  ul.innerHTML = ""
-
-  const list = document.getElementById("proposition-container");
-  results.forEach((result) => {
-      const listItem = document.createElement("li");
-      let address = document.createElement('span');
-      let infosAdresse = document.createTextNode(result.properties.postcode + ' ' + result.properties.city);
-      listItem.textContent = result.properties.name;
-      listItem.appendChild(address);
-      listItem.appendChild(infosAdresse);
-      ul.appendChild(listItem);
-
-      listItem.addEventListener("click", () => {
-          const coordinates = result.geometry.coordinates;
-          map.flyTo({ center: coordinates, zoom: 20 });
-          resultsContainer.innerHTML = "";
-      });
+map.on('click', (e) => {
+  const features = map.queryRenderedFeatures(e.point, {
+    layers: ["ban-adresses"], // Remplacez ceci par le nom de la couche d'adresses de la BAN que vous avez ajoutée
   });
 
-  resultsContainer.appendChild(list);
-}
+  // Vérifiez si une entité d'adresse a été trouvée
+  if (features.length > 0) {
+    // Prenez la première entité trouvée
+    const addressFeature = features[0];
+    console.log(addressFeature);
 
+    // Créez une chaîne contenant les propriétés de l'adresse sous forme de texte HTML
+    const addressInfo = Object.entries(addressFeature.properties)
+      .map(([key, value]) => `<strong style="color: purple">${key}:</strong> ${value}`)
+      .join("<br>");
+
+    // Créez une nouvelle popup et définissez son contenu et sa position
+    const popup = new mapboxgl.Popup()
+      .setLngLat(e.lngLat)
+      .setHTML(`<div style="font-size: 16px;">${addressInfo}</div>`)
+      .addTo(map);
+  } else {
+    console.log("Aucune adresse trouvée");
+  }
+
+});
+
+const searchInput = document.getElementById('search-input')
+let marker = new mapboxgl.Marker()
 
 searchInput.addEventListener("input", async (event) => {
   const query = event.target.value;
   if (query.length > 2) {
       const results = await searchAddress(query);
-      console.log(results);
-      displayResults(results);
-  } else {
-      document.getElementById("results-container").innerHTML = "";
+      displayResults(map, results, marker);
   }
 });
+
+
+
+
+/**/
