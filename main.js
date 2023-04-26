@@ -62,10 +62,23 @@ map.addLayer({
 
 
 //bdtopo
-map.addSource("bd-topo-routes", {
-  type: "vector",
-  url: "https://wxs.ign.fr/static/vectorTiles/styles/BDTOPO/routier.json"
-});
+fetch('https://wxs.ign.fr/static/vectorTiles/styles/BDTOPO/routier.json')
+  .then(response => response.json())
+  .then(styleData => {
+    //console.log(styleData);
+    map.addSource("bdtopo", {
+      type: "vector",
+      tiles: styleData.sources.bdtopo.tiles,
+    });
+
+    styleData.layers.forEach(layer => {
+      const newLayer = {...layer}
+      map.addLayer(newLayer)
+    });
+
+
+
+  });
 
 
 
@@ -75,14 +88,14 @@ map.addSource("bd-topo-routes", {
 
 map.on('click', (e) => {
   const features = map.queryRenderedFeatures(e.point, {
-    layers: ["ban-adresses"], // Remplacez ceci par le nom de la couche d'adresses de la BAN que vous avez ajoutée
+    layers: ["ban-adresses", "bdtopo"], // Remplacez ceci par le nom de la couche d'adresses de la BAN que vous avez ajoutée
   });
 
   // Vérifiez si une entité d'adresse a été trouvée
   if (features.length > 0) {
     // Prenez la première entité trouvée
     const addressFeature = features[0];
-    console.log(addressFeature);
+    //console.log(addressFeature);
 
     // Créez une chaîne contenant les propriétés de l'adresse sous forme de texte HTML
     const addressInfo = Object.entries(addressFeature.properties)

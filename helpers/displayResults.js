@@ -29,7 +29,6 @@ export function displayResults(map, results, marker) {
             //add marker
             marker.setLngLat(coordinates).addTo(map);
 
-            console.log(result);
         });
     });
   
