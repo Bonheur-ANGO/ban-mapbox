@@ -5,6 +5,7 @@ import { searchAddress } from './helpers/searchAdress';
 import { displayResults } from './helpers/displayResults';
 import { VectorTile } from '@mapbox/vector-tile';
 import Pbf from 'pbf';
+import { getAllLayers } from './helpers/getAllLayers';
 
 
 
@@ -61,6 +62,8 @@ map.addLayer({
 });
 
 
+console.log(getAllLayers());
+
 //bdtopo
 fetch('https://wxs.ign.fr/static/vectorTiles/styles/BDTOPO/routier.json')
   .then(response => response.json())
@@ -87,9 +90,9 @@ fetch('https://wxs.ign.fr/static/vectorTiles/styles/BDTOPO/routier.json')
 //console.log(map.queryRenderedFeatures());
 
 map.on('click', (e) => {
-  const features = map.queryRenderedFeatures(e.point, {
-    layers: ["ban-adresses", "bdtopo"], // Remplacez ceci par le nom de la couche d'adresses de la BAN que vous avez ajoutée
-  });
+  const features = map.queryRenderedFeatures(e.point/*, {
+    layers: ["ban-adresses", "route_a_deux_chaussees", "type_autoroutier", "route_a_une_chaussee", "chemin", "bretelle", "rond-point", "piste-cyclable", "escalier-outline"], 
+  }*/);
 
   // Vérifiez si une entité d'adresse a été trouvée
   if (features.length > 0) {
