@@ -17,6 +17,7 @@ export function displayResults(map, results, marker) {
         ul.appendChild(listItem);
   
         listItem.addEventListener("click", () => {
+          console.log(result);
           searchInput.value= address
           resultsContainer.classList.add("d-none")
             const coordinates = result.geometry.coordinates;

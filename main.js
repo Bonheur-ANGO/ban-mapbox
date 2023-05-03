@@ -1,11 +1,8 @@
 import mapboxgl  from 'mapbox-gl';
-import * as dotenv from 'dotenv';
-import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import { searchAddress } from './helpers/searchAdress';
 import { displayResults } from './helpers/displayResults';
 import { VectorTile } from '@mapbox/vector-tile';
 import Pbf from 'pbf';
-import { getAllLayers } from './helpers/getAllLayers';
 
 
 
@@ -62,7 +59,6 @@ map.addLayer({
 });
 
 
-console.log(getAllLayers());
 
 //bdtopo
 fetch('https://wxs.ign.fr/static/vectorTiles/styles/BDTOPO/routier.json')
@@ -87,29 +83,40 @@ fetch('https://wxs.ign.fr/static/vectorTiles/styles/BDTOPO/routier.json')
 
 });
 
-//console.log(map.queryRenderedFeatures());
 
 map.on('click', (e) => {
-  const features = map.queryRenderedFeatures(e.point/*, {
-    layers: ["ban-adresses", "route_a_deux_chaussees", "type_autoroutier", "route_a_une_chaussee", "chemin", "bretelle", "rond-point", "piste-cyclable", "escalier-outline"], 
-  }*/);
+  const allLayers = map.getStyle().layers;
+  const bdTopoLayers = allLayers
+    .filter((layer) => layer.source === 'bdtopo')
+    .map((layer) => layer.id);
 
-  // Vérifiez si une entité d'adresse a été trouvée
+  const banLayers = allLayers
+    .filter((layer) => layer.source === 'ban')
+    .map((layer) => layer.id);
+
+
+
+  const features = map.queryRenderedFeatures(e.point, {
+    layers: [...banLayers, ...bdTopoLayers], 
+  });
+
+
   if (features.length > 0) {
-    // Prenez la première entité trouvée
+    // get the first feature
     const addressFeature = features[0];
-    //console.log(addressFeature);
 
-    // Créez une chaîne contenant les propriétés de l'adresse sous forme de texte HTML
     const addressInfo = Object.entries(addressFeature.properties)
       .map(([key, value]) => `<strong style="color: purple">${key}:</strong> ${value}`)
       .join("<br>");
 
-    // Créez une nouvelle popup et définissez son contenu et sa position
+    //display popup
     const popup = new mapboxgl.Popup()
       .setLngLat(e.lngLat)
       .setHTML(`<div style="font-size: 16px;">${addressInfo}</div>`)
+      .setMaxWidth('800')
       .addTo(map);
+
+    ;
   } else {
     console.log("Aucune adresse trouvée");
   }
@@ -129,5 +136,3 @@ searchInput.addEventListener("input", async (event) => {
 
 
 
-
-/**/

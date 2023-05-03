@@ -61,3 +61,24 @@ body {
   padding: 0;
   width: 100%;
 }
+
+
+/*mapbox popup*/
+.mapboxgl-popup {
+  max-width: 500px; /* Ajustez la largeur maximale de la popup */
+}
+
+.mapboxgl-popup-content {
+  font-size: 16px; /* Ajustez la taille de la police */
+  line-height: 1.6; /* Ajustez l'espacement entre les lignes de texte */
+  color: #333; /* Ajustez la couleur du texte */
+}
+
+.mapboxgl-popup-content h3 {
+  font-size: 24px; /* Ajustez la taille de la police pour les titres */
+  margin-top: 0; /* Ajustez l'espacement au-dessus des titres */
+}
+
+.mapboxgl-popup-content p {
+  margin-bottom: 1em; /* Ajustez l'espacement en-dessous des paragraphes */
+}

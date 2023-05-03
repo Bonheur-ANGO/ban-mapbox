@@ -1,0 +1,6 @@
+Les différentes fonctionnalités qui m'ont été demandées :
+- création de la map
+- Affichage des adresses de la ban à l'aide de l'API
+- Affichage du routier de la BDTopo
+- Affichage des informations des objets de la ban et de la BDTOPO
+- Faire de l'appariement géométrique entre les objets de la ban et de la BDTOPO
