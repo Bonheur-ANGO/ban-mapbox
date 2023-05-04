@@ -2,7 +2,6 @@ import mapboxgl  from 'mapbox-gl';
 import { searchAddress } from './helpers/searchAdress';
 import { displayResults } from './helpers/displayResults';
 import { VectorTile } from '@mapbox/vector-tile';
-import Pbf from 'pbf';
 
 
 
