@@ -1,6 +1,19 @@
+But final : 
+Créer une application qui permet d'apparier les objets de la Base Adresse Nationale (BAN) et ceux de la BdUni de l'IGN, afin de mettre à jour les odonymes de la BdUni. Une fois l'appariement effectué, une alerte est générée pour informer un opérateur qu'une mise à jour est nécessaire.
+
 Les différentes fonctionnalités qui m'ont été demandées :
 - création de la map
 - Affichage des adresses de la ban à l'aide de l'API
 - Affichage du routier de la BDTopo
 - Affichage des informations des objets de la ban et de la BDTOPO
 - Faire de l'appariement géométrique entre les objets de la ban et de la BDTOPO
+
+Voici comment je compte procéder :
+- Utilisez Mapbox GL JS pour afficher la carte, les adresses de la BAN et les données de la BD Topo.
+- Pour l'appariement géométrique, faire une API avec Flask qui effectuera les calculs géospatiaux côté serveur. Cette API prendra en entrée les coordonnées de l'adresse sélectionnée et renverra les résultats de l'appariement géométrique (par exemple, les adresses correspondantes dans la même rue ou les objets BD Topo les plus proches).
+- Dans l'application front-end, envoyer une requête à l'API créée lorsqu'un utilisateur interagit avec la carte (par exemple, en cliquant sur une adresse). 
+- Utiliser les résultats renvoyés par l'API pour mettre à jour la carte et afficher les informations pertinentes.
+
+Utilisation des technologies :
+- L'utilisation de javascript avec Mapbox en front pour aficher les données géospatiales
+- L'utilisation de Python en back pour effectuer des traitements géographiques complexes
