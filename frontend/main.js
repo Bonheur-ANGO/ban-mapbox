@@ -95,14 +95,14 @@ map.on('click', (e) => {
 
 
 
-  const features = map.queryRenderedFeatures(e.point, {
+  const allFeatures = map.queryRenderedFeatures(e.point, {
     layers: [...banLayers, ...bdTopoLayers], 
   });
 
 
-  if (features.length > 0) {
+  if (allFeatures.length > 0) {
     // get the first feature
-    const addressFeature = features[0];
+    const addressFeature = allFeatures[0];
 
     const addressInfo = Object.entries(addressFeature.properties)
       .map(([key, value]) => `<strong style="color: purple">${key}:</strong> ${value}`)
