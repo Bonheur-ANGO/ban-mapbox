@@ -17,3 +17,7 @@ Voici comment je compte procéder :
 Utilisation des technologies :
 - L'utilisation de javascript avec Mapbox en front pour aficher les données géospatiales
 - L'utilisation de Python en back pour effectuer des traitements géographiques complexes
+
+- Création d'une api en Flask :
+    - Routes :
+        - Méthode : get - /liste_communes : récupère la liste des communes

@@ -2,6 +2,7 @@ import mapboxgl  from 'mapbox-gl';
 import { searchAddress } from './helpers/searchAdress';
 import { displayResults } from './helpers/displayResults';
 import { VectorTile } from '@mapbox/vector-tile';
+import { getCommunes } from './helpers/getCommunes';
 
 
 
@@ -122,16 +123,47 @@ map.on('click', (e) => {
 
 });
 
-const searchInput = document.getElementById('search-input')
-let marker = new mapboxgl.Marker()
 
-searchInput.addEventListener("input", async (event) => {
-  const query = event.target.value;
-  if (query.length > 2) {
-      const results = await searchAddress(query);
-      displayResults(map, results, marker);
-  }
-});
+//Récupère toutes les communes
+getCommunes()
 
 
+//met un style sur la commune
+const geometricMatching = document.getElementById("geomatching")
+const commune = document.getElementById("communes")
+geometricMatching.addEventListener("click", ()=>{
+  let apiUrl = "http://127.0.0.1:5000/commune/" + commune.value
+  fetch(apiUrl)
+      .then((response) => {
+          if (!response.ok) {
+          throw new Error("Erreur lors de la récupération des données de l'API");
+          }
+          return response.json();
+      })
+      .then((feature) => {
+        map.addSource('point', {
+          'type': 'geojson',
+          'data': {
+              'type': 'FeatureCollection',
+              'features': [feature]
+          }
+        });
 
+        map.addLayer({
+          'id': 'point',
+          'type': 'circle',
+          'source': 'point',
+          'paint': {
+              'circle-radius': 10,
+              'circle-color': '#007cbf'
+          }
+      });
+      const coordinates = feature.geometry.coordinates
+      console.log(coordinates);
+       map.flyTo({center: coordinates, zoom: 14})
+
+      })
+      .catch((error) => {
+          console.error("Erreur lors de la récupération des données de l'API:", error);
+      });
+})
