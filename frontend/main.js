@@ -128,11 +128,11 @@ map.on('click', (e) => {
 getCommunes()
 
 
-//met un style sur la commune
-const geometricMatching = document.getElementById("geomatching")
-const commune = document.getElementById("communes")
-geometricMatching.addEventListener("click", ()=>{
-  let apiUrl = "http://127.0.0.1:5000/commune/" + commune.value
+//zoom et applique un style sur la commune
+const zoom = document.getElementById("zoom")
+const communeInput = document.getElementById("inputForCommune")
+zoom.addEventListener("click", ()=>{
+  let apiUrl = "http://127.0.0.1:5000/commune/" + communeInput.value
   fetch(apiUrl)
       .then((response) => {
           if (!response.ok) {
@@ -141,29 +141,50 @@ geometricMatching.addEventListener("click", ()=>{
           return response.json();
       })
       .then((feature) => {
-        map.addSource('point', {
-          'type': 'geojson',
-          'data': {
-              'type': 'FeatureCollection',
-              'features': [feature]
-          }
-        });
-
-        map.addLayer({
-          'id': 'point',
-          'type': 'circle',
-          'source': 'point',
-          'paint': {
-              'circle-radius': 10,
-              'circle-color': '#007cbf'
-          }
-      });
-      const coordinates = feature.geometry.coordinates
-      console.log(coordinates);
-       map.flyTo({center: coordinates, zoom: 14})
+        zoomOnCommune(map, feature)
 
       })
       .catch((error) => {
           console.error("Erreur lors de la récupération des données de l'API:", error);
       });
 })
+
+
+function zoomOnCommune(map, feature) {
+  map.addSource('commune', {
+    'type': 'geojson',
+    'data': {
+        'type': 'FeatureCollection',
+        'features': [feature]
+    }
+  });
+
+    map.addLayer({
+      'id': 'poly-layer',
+      'type': 'fill',
+      'source': 'commune',
+      'paint': {
+        'fill-color': '#088',
+        'fill-opacity': 0.8
+      }
+  });
+  const coordinates = feature.geometry.coordinates
+
+  let bounds = new mapboxgl.LngLatBounds();
+  coordinates[0].forEach(coord =>{
+    let lng = coord[0];
+    let lat = coord[1];
+
+    // Check if coordinates are valid
+    if (lng < -180 || lng > 180 || lat < -90 || lat > 90) {
+        console.error('Invalid coordinates: ', coord);
+    } else {
+        bounds.extend(coord);
+    }
+  })
+
+  map.fitBounds(bounds, {
+    padding: 20,
+    zoom: 13
+  })
+}

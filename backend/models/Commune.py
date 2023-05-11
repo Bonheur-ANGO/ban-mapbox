@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String
 from geoalchemy2 import Geometry
 from geoalchemy2.shape import to_shape
 
+
 Base = declarative_base()
 
 class Commune(Base):
@@ -58,4 +59,4 @@ class Commune(Base):
     code_siren = Column(String)
     gcvs_empreinte = Column(String)
 
-    geometrie = Column(Geometry("POLYGON"))
+    geometrie_ge = Column(Geometry(geometry_type="POLYGON"))

@@ -21,3 +21,16 @@ Utilisation des technologies :
 - Création d'une api en Flask :
     - Routes :
         - Méthode : get - /liste_communes : récupère la liste des communes
+
+
+
+Le but de mon application est de créer une application qui permet d'apparier les objets de la Base Adresse Nationale (BAN) et ceux de la BdUni de l'IGN, afin de mettre à jour les odonymes de la BdUni. Une fois l'appariement effectué, une alerte est générée pour informer un opérateur qu'une mise à jour est nécessaire. Le front se fait avec javascript, mapbox gl js et vite js. Le back avec python et flask.
+J'utilise une base de données interne de l'IGN appelé bd_uni_france_consultation pour intéragir avec les données dont j'ai besoin. Cette base de données contient également les adresses de la ban.
+
+SRID est l'acronyme de "Spatial Reference System Identifier" (Identifiant du Système de Référence Spatial). C'est une référence unique à un système de coordonnées spatiales particulier, à une tolérance de résolution spatiale particulière, et à une tolérance de résolution spatiale particulière.
+
+En d'autres termes, le SRID est utilisé pour identifier le système de coordonnées et les autres informations spatiales pertinentes pour une géométrie dans une base de données spatiale. Chaque géométrie stockée dans une base de données spatiale a un SRID associé pour indiquer le système de coordonnées dans lequel elle est définie.
+
+Par exemple, le SRID 4326 est utilisé pour le système de coordonnées géographiques WGS 84, qui est couramment utilisé pour les données GPS. Le SRID 2154 est utilisé pour le système de coordonnées projetées Lambert 93, qui est couramment utilisé pour les données géospatiales en France.
+
+Lorsque vous transformez des géométries d'un système de coordonnées à un autre (comme de Lambert 93 à WGS 84), vous devez indiquer le SRID d'origine et le SRID de destination pour que la transformation puisse être effectuée correctement.

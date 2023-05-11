@@ -13,12 +13,14 @@
 <body>
     <div class="container my-3">
         <form action="" method="post" class="needs-validation">
-            <select id="communes" class="form-select form-select-md mb-3" aria-label=".form-select-lg example" required>
-                <option selected>Veuillez sélectionner une commune</option>
-            </select>
+            <input type="text" placeholder="Tapez pour rechercher une commune" id="inputForCommune" class="form-control" list="communes" required>
+            <datalist id="communes">
+            </datalist>
             <div class="invalid-feedback">
                 Please select a valid state.
             </div>
+            <br>
+            <button class="btn btn-primary" type="button" id="zoom">Zoomer</button>
             <button class="btn btn-primary" type="button" id="geomatching">Apparier</button>
         </form>
     </div>
