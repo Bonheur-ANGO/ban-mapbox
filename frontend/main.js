@@ -3,6 +3,8 @@ import { searchAddress } from './helpers/searchAdress';
 import { displayResults } from './helpers/displayResults';
 import { VectorTile } from '@mapbox/vector-tile';
 import { getCommunes } from './helpers/getCommunes';
+import { zoomOnCommune } from './helpers/zoomOnCommune';
+import { verifyCodeInseeAndZoom } from './helpers/verifyCodeInseeAndZoom';
 
 
 
@@ -129,62 +131,11 @@ getCommunes()
 
 
 //zoom et applique un style sur la commune
-const zoom = document.getElementById("zoom")
+const zoomBtn = document.getElementById("zoomBtn")
 const communeInput = document.getElementById("inputForCommune")
-zoom.addEventListener("click", ()=>{
-  let apiUrl = "http://127.0.0.1:5000/commune/" + communeInput.value
-  fetch(apiUrl)
-      .then((response) => {
-          if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des données de l'API");
-          }
-          return response.json();
-      })
-      .then((feature) => {
-        zoomOnCommune(map, feature)
-
-      })
-      .catch((error) => {
-          console.error("Erreur lors de la récupération des données de l'API:", error);
-      });
+zoomBtn.addEventListener("click", ()=>{
+  verifyCodeInseeAndZoom(map, communeInput.value)
 })
 
 
-function zoomOnCommune(map, feature) {
-  map.addSource('commune', {
-    'type': 'geojson',
-    'data': {
-        'type': 'FeatureCollection',
-        'features': [feature]
-    }
-  });
 
-    map.addLayer({
-      'id': 'poly-layer',
-      'type': 'fill',
-      'source': 'commune',
-      'paint': {
-        'fill-color': '#088',
-        'fill-opacity': 0.8
-      }
-  });
-  const coordinates = feature.geometry.coordinates
-
-  let bounds = new mapboxgl.LngLatBounds();
-  coordinates[0].forEach(coord =>{
-    let lng = coord[0];
-    let lat = coord[1];
-
-    // Check if coordinates are valid
-    if (lng < -180 || lng > 180 || lat < -90 || lat > 90) {
-        console.error('Invalid coordinates: ', coord);
-    } else {
-        bounds.extend(coord);
-    }
-  })
-
-  map.fitBounds(bounds, {
-    padding: 20,
-    zoom: 13
-  })
-}

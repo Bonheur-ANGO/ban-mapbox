@@ -34,3 +34,14 @@ En d'autres termes, le SRID est utilisé pour identifier le système de coordonn
 Par exemple, le SRID 4326 est utilisé pour le système de coordonnées géographiques WGS 84, qui est couramment utilisé pour les données GPS. Le SRID 2154 est utilisé pour le système de coordonnées projetées Lambert 93, qui est couramment utilisé pour les données géospatiales en France.
 
 Lorsque vous transformez des géométries d'un système de coordonnées à un autre (comme de Lambert 93 à WGS 84), vous devez indiquer le SRID d'origine et le SRID de destination pour que la transformation puisse être effectuée correctement.
+
+
+Appariement spatial : Pour chaque adresse, trouvez le tronçon de route le plus proche. Cela peut être fait en calculant la distance entre chaque adresse et chaque tronçon de route, puis en sélectionnant le tronçon de route avec la distance la plus courte. Cela peut être réalisé en utilisant une fonction de distance comme celle que j'ai mentionnée dans ma précédente réponse. Cette étape peut être coûteuse en temps de calcul si vous avez beaucoup d'adresses et de tronçons de route.
+
+Regroupement par nom de route : Une fois que chaque adresse est associée à un tronçon de route, vous pouvez regrouper les adresses par nom de route. Cela peut être fait en utilisant une fonction de groupement dans votre système de gestion de base de données. Par exemple, en SQL, vous pourriez utiliser la clause GROUP BY.
+
+
+requête sql pour l'appariement
+SELECT a.numero AS adresse_id, t.cleabs AS troncon_id, a.nom_voie, ST_Distance(a.geometrie, t.geometrie) AS distance
+FROM adresse_ban a, troncon_de_route t
+WHERE a.insee_commune = '67463' AND t.insee_commune_gauche = '67463'
