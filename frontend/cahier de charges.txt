@@ -40,8 +40,36 @@ Appariement spatial : Pour chaque adresse, trouvez le tronçon de route le plus 
 
 Regroupement par nom de route : Une fois que chaque adresse est associée à un tronçon de route, vous pouvez regrouper les adresses par nom de route. Cela peut être fait en utilisant une fonction de groupement dans votre système de gestion de base de données. Par exemple, en SQL, vous pourriez utiliser la clause GROUP BY.
 
+comment se fait l'appariement :
+La distance entre une adresse (point) et un tronçon de route (ligne) peut être calculée en utilisant une fonction de distance géométrique. 
+Dans le cas de PostgreSQL avec l'extension PostGIS, l'on peut utiliser la fonction ST_Distance.
+La fonction ST_Distance prend deux géométries en entrée et retourne la distance minimale entre elles. 
+L'on peut utiliser cette fonction pour calculer la distance entre chaque adresse et chaque tronçon de route.
 
-requête sql pour l'appariement
-SELECT a.numero AS adresse_id, t.cleabs AS troncon_id, a.nom_voie, ST_Distance(a.geometrie, t.geometrie) AS distance
-FROM adresse_ban a, troncon_de_route t
-WHERE a.insee_commune = '67463' AND t.insee_commune_gauche = '67463'
+requête sql pour l'appariement : 
+WITH distances AS (
+    SELECT a.cleabs AS adresse_id, a.numero AS numero_adresse, a.nom_commune, a.suffixe, a.insee_commune, a.nom_voie, t.cleabs AS troncon_id, ST_Distance(a.geometrie, t.geometrie) AS distance
+    FROM adresse_ban a
+    JOIN troncon_de_route t
+    ON a.insee_commune = t.insee_commune_gauche AND a.insee_commune = t.insee_commune_droite
+    WHERE a.insee_commune = '94067' AND a.gcms_detruit='false'
+), min_distances AS (
+       SELECT adresse_id, numero_adresse, nom_voie, MIN(distance) AS min_distance, insee_commune, nom_commune
+        FROM distances
+        GROUP BY adresse_id, numero_adresse, nom_voie, insee_commune, nom_commune, suffixe
+)
+SELECT distances.adresse_id, distances.numero_adresse, distances.suffixe, distances.nom_voie, distances.nom_commune, distances.insee_commune, distances.troncon_id, distances.distance
+FROM distances
+JOIN min_distances
+ON distances.insee_commune = min_distances.insee_commune
+AND distances.numero_adresse = min_distances.numero_adresse
+AND distances.distance = min_distances.min_distance;
+
+Explication de l'appariement en détail:
+On commence par calculer la distance entre chaque adresse et chaque tronçon de route dans la même commune. Ces résultats sont stockés dans une table temporaire appelée "distances".
+
+Ensuite, pour chaque adresse, on cherche la distance minimale parmi toutes les distances calculées à l'étape précédente. Ces résultats sont stockés dans une autre table temporaire appelée "min_distances".
+
+Enfin, on joint les deux tables temporaires pour obtenir le tronçon le plus proche (c'est-à-dire le tronçon ayant la distance minimale) pour chaque adresse.
+
+L'objectif final de cette requête est d'identifier le tronçon le plus proche pour chaque adresse dans une commune donnée.

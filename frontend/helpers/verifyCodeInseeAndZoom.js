@@ -1,6 +1,5 @@
-import { zoomOnCommune } from "./zoomOnCommune";
 
-export function verifyCodeInseeAndZoom(map, code_insee) {
+export function verifyCodeInseeAndZoom(map, code_insee, callbackFunction) {
     let apiUrl = "http://127.0.0.1:5000/liste_communes"
     fetch(apiUrl)
     .then((response) => {
@@ -17,7 +16,7 @@ export function verifyCodeInseeAndZoom(map, code_insee) {
       if (!codeInseeTab.includes(code_insee)) {
         alert("Veuillez entrer un code INSEE valide")
       } else{
-        zoomOnCommune(map, code_insee)
+        callbackFunction
       }
     })
     .catch((error) => {

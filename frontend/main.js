@@ -134,7 +134,8 @@ getCommunes()
 const zoomBtn = document.getElementById("zoomBtn")
 const communeInput = document.getElementById("inputForCommune")
 zoomBtn.addEventListener("click", ()=>{
-  verifyCodeInseeAndZoom(map, communeInput.value)
+  
+  verifyCodeInseeAndZoom(map, communeInput.value, zoomOnCommune(map, communeInput.value))
 })
 
 
