@@ -1,6 +1,8 @@
 import gzip
 from database.DbConfig import DbConfig
 from controllers.CommuneController import CommuneController
+from controllers.TronconController import TronconController
+from controllers.GeometricMatchingController import GeometricMatchingController
 from helpers.JSONConverter import JSONConverter
 import pandas as pd
 
@@ -15,6 +17,12 @@ filtered_data = data[data['code_postal'] == postal_code]
 print(filtered_data)"""
 
 commune = CommuneController()
-print(commune.get_commune_by_code_insee("85289"))
+geo = GeometricMatchingController()
 
+'''for row in geo.get_nearest_troncon("94067"):
+    print(row)'''
+    
+troncon_controller = TronconController()
+
+print(troncon_controller.get_all_troncon("94067"))
 

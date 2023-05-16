@@ -48,17 +48,19 @@ L'on peut utiliser cette fonction pour calculer la distance entre chaque adresse
 
 requête sql pour l'appariement : 
 WITH distances AS (
-    SELECT a.cleabs AS adresse_id, a.numero AS numero_adresse, a.nom_commune, a.suffixe, a.insee_commune, a.nom_voie, t.cleabs AS troncon_id, ST_Distance(a.geometrie, t.geometrie) AS distance
+    SELECT a.cleabs AS adresse_id, a.numero AS numero_adresse, t.nom_1_gauche AS nom_voie_gauche, v.nom_initial_troncon, t.nom_1_droite AS nom_voie_droite, a.nom_commune, a.suffixe, a.insee_commune, a.nom_voie AS nom_voie_adresse_ban, t.cleabs AS troncon_id, ST_Distance(a.geometrie, t.geometrie) AS distance
     FROM adresse_ban a
     JOIN troncon_de_route t
-    ON a.insee_commune = t.insee_commune_gauche AND a.insee_commune = t.insee_commune_droite
-    WHERE a.insee_commune = '94067' AND a.gcms_detruit='false'
+    ON a.insee_commune = t.insee_commune_gauche OR a.insee_commune = t.insee_commune_droite
+    JOIN voie v
+    ON v.id_pseudo_fpb = t.identifiant_voie_1_gauche OR v.id_pseudo_fpb = t.identifiant_voie_1_droite
+    WHERE a.insee_commune = '94067' AND a.nom_voie='Avenue Pasteur' AND a.gcms_detruit='false'
 ), min_distances AS (
-       SELECT adresse_id, numero_adresse, nom_voie, MIN(distance) AS min_distance, insee_commune, nom_commune
+       SELECT adresse_id, numero_adresse, nom_voie_adresse_ban, MIN(distance) AS min_distance, insee_commune, nom_commune
         FROM distances
-        GROUP BY adresse_id, numero_adresse, nom_voie, insee_commune, nom_commune, suffixe
+        GROUP BY adresse_id, numero_adresse, nom_voie_adresse_ban, insee_commune, nom_commune, suffixe
 )
-SELECT distances.adresse_id, distances.numero_adresse, distances.suffixe, distances.nom_voie, distances.nom_commune, distances.insee_commune, distances.troncon_id, distances.distance
+SELECT distances.adresse_id, distances.numero_adresse, distances.suffixe, distances.nom_voie_adresse_ban, distances.nom_commune, distances.nom_initial_troncon, distances.nom_voie_droite, distances.nom_voie_gauche, distances.insee_commune, distances.troncon_id, distances.distance
 FROM distances
 JOIN min_distances
 ON distances.insee_commune = min_distances.insee_commune

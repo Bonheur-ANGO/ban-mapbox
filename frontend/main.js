@@ -42,44 +42,46 @@ map.on('load', () => {
         'circle-color': '#FF0000',
         'circle-opacity': 0.8,
     }
-});
-
-map.addLayer({
-  id: 'ban-point-label',
-  type: 'symbol',
-  source: 'ban',
-  'source-layer': 'adresses',
-  layout: {
-      'text-field': '{numero}{suffixe}',
-      'text-font': ['Open Sans Regular'],
-      'text-size': 16,
-      'text-offset': [0, 1.5],
-  },
-  paint: {
-      'text-color': '#000',
-  },
-});
-
-
-
-//bdtopo
-fetch('https://wxs.ign.fr/static/vectorTiles/styles/BDTOPO/routier.json')
-  .then(response => response.json())
-  .then(styleData => {
-    //console.log(styleData);
-    map.addSource("bdtopo", {
-      type: "vector",
-      tiles: styleData.sources.bdtopo.tiles,
-    });
-
-    styleData.layers.forEach(layer => {
-      const newLayer = {...layer}
-      map.addLayer(newLayer)
-    });
-
-
-
   });
+
+  map.addLayer({
+    id: 'ban-point-label',
+    type: 'symbol',
+    source: 'ban',
+    'source-layer': 'adresses',
+    layout: {
+        'text-field': '{numero}{suffixe}',
+        'text-font': ['Open Sans Regular'],
+        'text-size': 16,
+        'text-offset': [0, 1.5],
+    },
+    paint: {
+        'text-color': '#000',
+    },
+  });
+
+  
+
+
+
+  //bdtopo
+  /*fetch('https://wxs.ign.fr/static/vectorTiles/styles/BDTOPO/routier.json')
+    .then(response => response.json())
+    .then(styleData => {
+      //console.log(styleData);
+      map.addSource("bdtopo", {
+        type: "vector",
+        tiles: styleData.sources.bdtopo.tiles,
+      });
+
+      styleData.layers.forEach(layer => {
+        const newLayer = {...layer}
+        map.addLayer(newLayer)
+      });
+
+
+
+    });*/
 
 
 
@@ -89,7 +91,7 @@ fetch('https://wxs.ign.fr/static/vectorTiles/styles/BDTOPO/routier.json')
 map.on('click', (e) => {
   const allLayers = map.getStyle().layers;
   const bdTopoLayers = allLayers
-    .filter((layer) => layer.source === 'bdtopo')
+    .filter((layer) => layer.source === 'troncons')
     .map((layer) => layer.id);
 
   const banLayers = allLayers
@@ -133,9 +135,10 @@ getCommunes()
 //zoom et applique un style sur la commune
 const zoomBtn = document.getElementById("zoomBtn")
 const communeInput = document.getElementById("inputForCommune")
+
 zoomBtn.addEventListener("click", ()=>{
-  
-  verifyCodeInseeAndZoom(map, communeInput.value, zoomOnCommune(map, communeInput.value))
+  const code_insee = communeInput.value
+  verifyCodeInseeAndZoom(map, communeInput.value, zoomOnCommune(map, code_insee))
 })
 
 

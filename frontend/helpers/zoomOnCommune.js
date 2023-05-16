@@ -1,9 +1,12 @@
 import mapboxgl  from 'mapbox-gl';
+import { getTronconsByCommune } from './getTronconsByCommune';
 
 export function zoomOnCommune(map, code_insee) {
     if (map.getSource("commune")) {
         map.removeLayer("commune-layer")
         map.removeSource("commune")
+        map.removeLayer("troncons-line-layer")
+        map.removeSource("troncons")
     }
     
     let apiUrl = "http://127.0.0.1:5000/commune/" + code_insee
@@ -15,6 +18,7 @@ export function zoomOnCommune(map, code_insee) {
             return response.json();
         })
         .then((feature) => {
+          getTronconsByCommune(map, code_insee)
           map.addSource('commune', {
             'type': 'geojson',
             'data': {
