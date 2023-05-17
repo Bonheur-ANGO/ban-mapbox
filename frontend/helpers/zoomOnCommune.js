@@ -52,7 +52,7 @@ export function zoomOnCommune(map, code_insee) {
           })
         
           map.fitBounds(bounds, {
-            zoom: 13
+            zoom: 14
           })
   
         })

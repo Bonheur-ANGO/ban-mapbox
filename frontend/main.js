@@ -4,7 +4,7 @@ import { displayResults } from './helpers/displayResults';
 import { VectorTile } from '@mapbox/vector-tile';
 import { getCommunes } from './helpers/getCommunes';
 import { zoomOnCommune } from './helpers/zoomOnCommune';
-import { verifyCodeInseeAndZoom } from './helpers/verifyCodeInseeAndZoom';
+import { verifyCodeInsee } from './helpers/verifyCodeInsee';
 
 
 
@@ -65,7 +65,7 @@ map.on('load', () => {
 
 
   //bdtopo
-  /*fetch('https://wxs.ign.fr/static/vectorTiles/styles/BDTOPO/routier.json')
+  fetch('https://wxs.ign.fr/static/vectorTiles/styles/BDTOPO/routier.json')
     .then(response => response.json())
     .then(styleData => {
       //console.log(styleData);
@@ -81,7 +81,7 @@ map.on('load', () => {
 
 
 
-    });*/
+    });
 
 
 
@@ -91,6 +91,10 @@ map.on('load', () => {
 map.on('click', (e) => {
   const allLayers = map.getStyle().layers;
   const bdTopoLayers = allLayers
+    .filter((layer) => layer.source === 'bdtopo')
+    .map((layer) => layer.id);
+
+    const tronconsLayers = allLayers
     .filter((layer) => layer.source === 'troncons')
     .map((layer) => layer.id);
 
@@ -101,7 +105,7 @@ map.on('click', (e) => {
 
 
   const allFeatures = map.queryRenderedFeatures(e.point, {
-    layers: [...banLayers, ...bdTopoLayers], 
+    layers: [...banLayers, ...bdTopoLayers, ...tronconsLayers], 
   });
 
 
@@ -138,8 +142,56 @@ const communeInput = document.getElementById("inputForCommune")
 
 zoomBtn.addEventListener("click", ()=>{
   const code_insee = communeInput.value
-  verifyCodeInseeAndZoom(map, communeInput.value, zoomOnCommune(map, code_insee))
+  verifyCodeInsee(map, communeInput.value, zoomOnCommune(map, code_insee))
 })
 
+//appariement géométrique
+const geometricMatchingBtn = document.getElementById('geomatching')
+geometricMatchingBtn.addEventListener('click', ()=>{
+  const code_insee = communeInput.value
+  //verifyCodeInsee(map, communeInput.value)
 
+
+
+  let apiUrl = "http://127.0.0.1:5000/commune/appariement_geometrique/" + code_insee
+    fetch(apiUrl)
+        .then((response) => {
+            if (!response.ok) {
+            throw new Error("Erreur lors de la récupération des données de l'API");
+            }
+            return response.json();
+        })
+        .then((features) => {
+          console.log(features);
+          map.addSource('appariement-line', {
+            'type': 'geojson',
+            'data': {
+                'type': 'Feature',
+                'features': [features]
+            }
+          });
+        
+            map.addLayer({
+              'id': 'appariement-line-layer',
+              'type': 'line',
+              'source': 'appariement-line',
+              'layout': {
+                'line-join': 'round',
+                'line-cap': 'round'
+              },
+              'paint': {
+                'line-color': '#8e44ad',
+                'line-width': 2
+              }
+          });
+  
+        })
+        .catch((error) => {
+            console.error("Erreur lors de la récupération des données de l'API:", error);
+        });
+
+
+
+
+})
 

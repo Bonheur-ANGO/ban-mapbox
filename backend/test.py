@@ -2,6 +2,7 @@ import gzip
 from database.DbConfig import DbConfig
 from controllers.CommuneController import CommuneController
 from controllers.TronconController import TronconController
+from helpers.NormalizeStreetName import NormalizeStreetName
 from controllers.GeometricMatchingController import GeometricMatchingController
 from helpers.JSONConverter import JSONConverter
 import pandas as pd
@@ -21,8 +22,10 @@ geo = GeometricMatchingController()
 
 '''for row in geo.get_nearest_troncon("94067"):
     print(row)'''
+ 
+print(geo.get_nearest_troncon("94067"))
     
-troncon_controller = TronconController()
+'''normalize_street_name = NormalizeStreetName()
 
-print(troncon_controller.get_all_troncon("94067"))
-
+print(normalize_street_name.format("PAS BIR-HAKEIM"))
+'''
