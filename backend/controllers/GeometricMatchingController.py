@@ -4,9 +4,10 @@ from shapely.geometry import LineString, Point
 from models.Commune import Commune
 import os
 from shapely.ops import nearest_points
-
+from controllers.CommuneController import CommuneController
 from helpers.NormalizeStreetName import NormalizeStreetName
 import geojson
+import geopandas as gpd
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, text
@@ -24,7 +25,7 @@ class GeometricMatchingController:
         session = Session()
         sql = text(f"""
                     WITH distances AS (
-                        SELECT a.cleabs AS adresse_id, a.numero AS numero_adresse, t.nom_1_gauche AS nom_voie_gauche, ST_AsText(ST_Transform(ST_SetSRID(t.geometrie, 2154), 4326)) AS geometrie_troncon, ST_AsText(ST_Transform(ST_SetSRID(a.geometrie, 2154), 4326)) AS geometrie_adresse_ban , v.nom_initial_troncon, a.nom_commune, a.suffixe, a.insee_commune, a.nom_voie AS nom_voie_adresse_ban, t.cleabs AS troncon_id, ST_Distance(a.geometrie, t.geometrie) AS distance
+                        SELECT a.cleabs AS adresse_id, a.numero AS numero_adresse, t.nom_1_gauche AS nom_voie_gauche, ST_AsText(ST_Transform(ST_SetSRID(ST_ClosestPoint(t.geometrie, a.geometrie), 2154), 4326)) AS closest_point_on_troncon, ST_AsText(ST_Transform(ST_SetSRID(a.geometrie, 2154), 4326)) AS geometrie_adresse_ban , v.nom_initial_troncon, a.nom_commune, a.suffixe, a.insee_commune, a.nom_voie AS nom_voie_adresse_ban, t.cleabs AS troncon_id, ST_Distance(a.geometrie, t.geometrie) AS distance
                         FROM adresse_ban a
                         JOIN troncon_de_route t
                         ON a.insee_commune = t.insee_commune_gauche OR a.insee_commune = t.insee_commune_droite
@@ -36,7 +37,7 @@ class GeometricMatchingController:
                             FROM distances
                             GROUP BY adresse_id, numero_adresse, nom_voie_adresse_ban, insee_commune, nom_commune, suffixe
                     )
-                    SELECT distances.adresse_id, distances.numero_adresse, distances.suffixe, distances.nom_voie_adresse_ban, distances.nom_commune, distances.nom_initial_troncon, distances.insee_commune, distances.troncon_id, distances.distance, distances.geometrie_troncon, distances.geometrie_adresse_ban
+                    SELECT distances.adresse_id, distances.numero_adresse, distances.suffixe, distances.nom_voie_adresse_ban, distances.nom_commune, distances.nom_initial_troncon, distances.insee_commune, distances.troncon_id, distances.distance, distances.closest_point_on_troncon, distances.geometrie_adresse_ban
                     FROM distances
                     JOIN min_distances
                     ON distances.insee_commune = min_distances.insee_commune AND distances.numero_adresse = min_distances.numero_adresse AND distances.distance = min_distances.min_distance
@@ -52,9 +53,9 @@ class GeometricMatchingController:
             
             if(nom_voie_adresse_ban != nom_voie_troncon):
                 coords_ban_address = wkt.loads(data['geometrie_adresse_ban'])
-                coords_troncon = wkt.loads(data['geometrie_troncon'])
-                nearest_point_on_troncon = nearest_points(coords_ban_address, coords_troncon)[1]
-                line = LineString([coords_ban_address, nearest_point_on_troncon])
+                coords_troncon = wkt.loads(data['closest_point_on_troncon'])
+                #nearest_point_on_troncon = nearest_points(coords_ban_address, coords_troncon)[1]
+                line = LineString([coords_ban_address, coords_troncon])
                 feature = geojson.Feature(geometry=line, properties={
                     "adresse_id_ban" : data['adresse_id'],
                     "nom_voie_adresse_ban" : nom_voie_adresse_ban,
@@ -66,3 +67,12 @@ class GeometricMatchingController:
                 features.append(feature)
         feature_collection = geojson.FeatureCollection(features)
         return feature_collection
+    
+    def matchingOdonyme(self):
+        commune_ctrl = CommuneController()
+        adresses = commune_ctrl.get_all_adress_by_commune(94067)
+        adresses_gpd = gpd.GeoDataFrame.from_features(adresses)
+        groupes = adresses_gpd.groupby('nom_voie')
+        
+        for nom_voie, groupe in groupes:
+            print(nom_voie)

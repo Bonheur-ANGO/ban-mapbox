@@ -1,5 +1,6 @@
 import mapboxgl  from 'mapbox-gl';
 import { getTronconsByCommune } from './getTronconsByCommune';
+import { displayBanAdress } from './displayBanAdress';
 
 export function zoomOnCommune(map, code_insee) {
     if (map.getSource("commune")) {
@@ -9,7 +10,7 @@ export function zoomOnCommune(map, code_insee) {
         map.removeSource("troncons")
     }
     
-    let apiUrl = "http://127.0.0.1:5000/commune/" + code_insee
+    let apiUrl = `https://geo.api.gouv.fr/communes?code=${code_insee}&format=geojson&geometry=contour`
     fetch(apiUrl)
         .then((response) => {
             if (!response.ok) {
@@ -18,12 +19,13 @@ export function zoomOnCommune(map, code_insee) {
             return response.json();
         })
         .then((feature) => {
-          getTronconsByCommune(map, code_insee)
+          //getTronconsByCommune(map, code_insee)
+          displayBanAdress(map, code_insee)
           map.addSource('commune', {
             'type': 'geojson',
             'data': {
                 'type': 'FeatureCollection',
-                'features': [feature]
+                'features': [feature.features[0]]
             }
           });
         
@@ -36,7 +38,7 @@ export function zoomOnCommune(map, code_insee) {
                 'fill-opacity': 0.3
               }
           });
-          const coordinates = feature.geometry.coordinates
+          const coordinates = feature.features[0].geometry.coordinates
         
           let bounds = new mapboxgl.LngLatBounds();
           coordinates[0].forEach(coord =>{

@@ -25,7 +25,7 @@ const map = new mapboxgl.Map({
 
 map.on('load', () => {
   // Ajouter la source de tuiles vectorielles BAN après le chargement de la carte
-  map.addSource('ban', {
+  /*map.addSource('ban', {
       type: 'vector',
       tiles: ['https://plateforme.adresse.data.gouv.fr/tiles/ban/{z}/{x}/{y}.pbf'],
       minzoom: 0,
@@ -58,7 +58,7 @@ map.on('load', () => {
     paint: {
         'text-color': '#000',
     },
-  });
+  });*/
 
   
 
@@ -150,47 +150,6 @@ const geometricMatchingBtn = document.getElementById('geomatching')
 geometricMatchingBtn.addEventListener('click', ()=>{
   const code_insee = communeInput.value
   //verifyCodeInsee(map, communeInput.value)
-
-
-
-  let apiUrl = "http://127.0.0.1:5000/commune/appariement_geometrique/" + code_insee
-    fetch(apiUrl)
-        .then((response) => {
-            if (!response.ok) {
-            throw new Error("Erreur lors de la récupération des données de l'API");
-            }
-            return response.json();
-        })
-        .then((features) => {
-          console.log(features);
-          map.addSource('appariement-line', {
-            'type': 'geojson',
-            'data': {
-                'type': 'Feature',
-                'features': [features]
-            }
-          });
-        
-            map.addLayer({
-              'id': 'appariement-line-layer',
-              'type': 'line',
-              'source': 'appariement-line',
-              'layout': {
-                'line-join': 'round',
-                'line-cap': 'round'
-              },
-              'paint': {
-                'line-color': '#8e44ad',
-                'line-width': 2
-              }
-          });
-  
-        })
-        .catch((error) => {
-            console.error("Erreur lors de la récupération des données de l'API:", error);
-        });
-
-
 
 
 })

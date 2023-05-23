@@ -1,3 +1,7 @@
+from io import StringIO
+import pandas as pd
+import geopandas as gpd
+import requests
 from database.DbConfig import DbConfig
 from models.Commune import Commune
 import os
@@ -75,3 +79,13 @@ class CommuneController:
             
         except:
             return {"message": "Cette commune n'existe pas"}"""
+            
+    
+    def get_all_adress_by_commune(self, code_insee):
+        url = f"https://plateforme.adresse.data.gouv.fr/ban/communes/{code_insee}/download/csv-legacy/adresses"
+        response = requests.get(url)
+        data = response.content.decode('utf-8')
+        df = pd.read_csv(StringIO(data), delimiter=';')
+        gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.lon, df.lat))
+        geojson = json.loads(gdf.to_json())
+        return geojson
