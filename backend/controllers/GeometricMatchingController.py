@@ -1,7 +1,8 @@
 from database.DbConfig import DbConfig
-from shapely import wkt
-from shapely.geometry import LineString, Point
+from shapely import wkt, wkb
+from shapely.geometry import LineString, Point, mapping
 from models.Commune import Commune
+from models.FusionTroncon import FusionTroncon
 import os
 from shapely.ops import nearest_points
 from controllers.CommuneController import CommuneController
@@ -69,10 +70,62 @@ class GeometricMatchingController:
         return feature_collection
     
     def matchingOdonyme(self):
-        commune_ctrl = CommuneController()
+        '''commune_ctrl = CommuneController()
         adresses = commune_ctrl.get_all_adress_by_commune(94067)
         adresses_gpd = gpd.GeoDataFrame.from_features(adresses)
-        groupes = adresses_gpd.groupby('nom_voie')
+        groupes = adresses_gpd.groupby('nom_voie')'''
+        Session = sessionmaker(bind=self.engine)
+        session = Session()
+        sql = text("""
+                   WITH 
+                    troncon_gauche AS (
+                        SELECT identifiant_voie_1_gauche AS identifiant_voie, 
+                        ST_Collect(geometrie) AS geometrie
+                        FROM troncon_de_route
+                        WHERE insee_commune_gauche = '94067'
+                        GROUP BY identifiant_voie_1_gauche
+                    ),
+
+                    troncon_droit AS (
+                        SELECT identifiant_voie_1_droite AS identifiant_voie, 
+                        ST_Collect(geometrie) AS geometrie
+                        FROM troncon_de_route
+                        WHERE insee_commune_droite = '94067'
+                        GROUP BY identifiant_voie_1_droite
+                    ),
+
+                    troncon_total AS (
+                        SELECT * FROM troncon_gauche
+                        UNION ALL
+                        SELECT * FROM troncon_droit
+                    )
+
+                    SELECT 
+                        tt.identifiant_voie, v.nom_minuscule, v.nom_initial_troncon,
+                        ST_AsText(ST_Transform(ST_SetSRID(ST_LineMerge(tt.geometrie), 2154),4326)) AS geometrie
+                    FROM 
+                        troncon_total tt
+                    JOIN 
+                        voie v
+                    ON 
+                        v.id_pseudo_fpb = tt.identifiant_voie
+                    GROUP BY 
+                        tt.identifiant_voie, v.nom_minuscule, tt.geometrie, v.nom_initial_troncon 
+                    ORDER BY v.nom_initial_troncon 
+
+                   """)
+        result = session.execute(sql)
+        columns = result.keys()
+        features = []
+        for obj in result.fetchall():
+            data = dict(zip(columns, obj))
+            shape = wkt.loads(data['geometrie'])
+            feature = geojson.Feature(geometry=shape, properties={
+                "nom_initial_troncon": data['nom_initial_troncon'],
+                "nom_minuscule": data['nom_minuscule'],
+                "identifiant_voie": data['identifiant_voie'],
+            })
+            features.append(feature)
+        return features
         
-        for nom_voie, groupe in groupes:
-            print(nom_voie)
+        

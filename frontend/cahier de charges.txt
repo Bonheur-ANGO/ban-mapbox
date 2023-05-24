@@ -75,3 +75,35 @@ Ensuite, pour chaque adresse, on cherche la distance minimale parmi toutes les d
 Enfin, on joint les deux tables temporaires pour obtenir le tronçon le plus proche (c'est-à-dire le tronçon ayant la distance minimale) pour chaque adresse.
 
 L'objectif final de cette requête est d'identifier le tronçon le plus proche pour chaque adresse dans une commune donnée.
+
+
+Le raisonnement présédent est faux :
+Requête pour assembler plusieurs 
+
+SELECT 
+    (CASE 
+        WHEN identifiant_voie_1_gauche IS NOT NULL THEN identifiant_voie_1_gauche
+        ELSE identifiant_voie_1_droite
+    END) AS identifiant_voie,
+    ST_LineMerge(ST_Collect(geometrie)) AS geometrie
+FROM 
+    troncon_de_route 
+WHERE 
+    insee_commune_gauche = '94067' OR insee_commune_droite = '94067'
+GROUP BY 
+    identifiant_voie;
+
+
+
+
+Dans le cadre de PostGIS, ST_LineMerge et ST_Collect sont deux fonctions spatiales très utiles pour manipuler et analyser les données géospatiales.
+
+ST_Collect est une fonction d'agrégation qui prend en entrée un ensemble de géométries et renvoie une seule géométrie qui est la collection de toutes ces géométries. Par exemple, si vous avez plusieurs géométries de points distinctes, ST_Collect peut les combiner en un seul objet de type MultiPoint.
+
+ST_LineMerge est une fonction qui prend une géométrie MultiLineString et fusionne ses composantes en une ou plusieurs LineStrings qui sont maximisées. Autrement dit, elle tente de combiner les lignes en un seul trait chaque fois que deux traits se touchent.
+
+Dans le contexte de votre requête, ST_Collect est d'abord utilisé pour combiner tous les tronçons de route ayant le même identifiant de voie en une seule géométrie MultiLineString. Ensuite, ST_LineMerge est utilisé pour fusionner ces géométries MultiLineString en une seule LineString chaque fois que c'est possible. En d'autres termes, ST_LineMerge tente de transformer les segments de route individuels en une représentation continue de la voie entière.
+
+Notez que ST_LineMerge ne pourra fusionner les lignes que si elles sont connectées. Si deux segments de route ont le même identifiant de voie mais ne sont pas connectés dans l'espace, ils resteront comme deux LineStrings distinctes après l'application de ST_LineMerge.
+
+Il est important de noter que ces fonctions fonctionneront correctement si les données sont correctement structurées et précises. Par exemple, les erreurs de précision ou les données manquantes peuvent empêcher ST_LineMerge de fusionner correctement les lignes.

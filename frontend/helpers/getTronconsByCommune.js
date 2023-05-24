@@ -2,7 +2,7 @@ export function getTronconsByCommune(map, code_insee){
     fetch('http://127.0.0.1:5000/commune/troncons/'+ code_insee)
   .then(response => response.json())
   .then(data => {
-    //console.log(data['features']);
+    console.log(data);
     map.addSource("troncons", {
       type: "geojson",
       data: data,

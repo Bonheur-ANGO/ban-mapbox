@@ -102,10 +102,14 @@ map.on('click', (e) => {
     .filter((layer) => layer.source === 'ban')
     .map((layer) => layer.id);
 
+    const mat = allLayers
+    .filter((layer) => layer.source === 'fusion-troncon')
+    .map((layer) => layer.id);
+
 
 
   const allFeatures = map.queryRenderedFeatures(e.point, {
-    layers: [...banLayers, ...bdTopoLayers, ...tronconsLayers], 
+    layers: [...banLayers, ...bdTopoLayers, ...tronconsLayers, ...mat], 
   });
 
 
@@ -150,7 +154,38 @@ const geometricMatchingBtn = document.getElementById('geomatching')
 geometricMatchingBtn.addEventListener('click', ()=>{
   const code_insee = communeInput.value
   //verifyCodeInsee(map, communeInput.value)
-
+  let apiUrl = "http://127.0.0.1:5000/commune/appariement-geometrique/"
+    fetch(apiUrl)
+        .then((response) => {
+            if (!response.ok) {
+            throw new Error("Erreur lors de la récupération des données de l'API");
+            }
+            return response.json();
+        })
+        .then((features) => {
+          console.log(features);
+          map.addSource('fusion-troncon', {
+            'type': 'geojson',
+            'data': {
+              'type': 'FeatureCollection',
+              'features': features
+          }
+          });
+        
+            map.addLayer({
+              'id': 'fusion-line',
+              'type': 'line',
+              'source': 'fusion-troncon',
+              'paint': {
+                'line-width': 2,
+                'line-color': '#8e44ad'
+            }
+          });
+  
+        })
+        .catch((error) => {
+            console.error("Erreur lors de la récupération des données de l'API:", error);
+        });
 
 })
 

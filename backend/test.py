@@ -54,4 +54,5 @@ print(normalize_street_name.format("PAS BIR-HAKEIM"))
 '''
 gm = GeometricMatchingController()
 
-print(gm.matchingOdonyme())
+for el in gm.matchingOdonyme():
+    print(el)

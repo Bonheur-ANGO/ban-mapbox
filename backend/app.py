@@ -32,9 +32,9 @@ def get_commune_by_code_insee(code_insee):
 def get_ban_adress_by_commune(code_insee):
     return jsonify(troncon_controller.get_all_troncon(code_insee))
 
-@app.route('/commune/appariement-geometrique/<int:code_insee>')
-def geometric_matching(code_insee):
-    return jsonify(geometric_matching_controller.get_nearest_troncon(code_insee))
+@app.route('/commune/appariement-geometrique/')
+def geometric_matching():
+    return jsonify(geometric_matching_controller.matchingOdonyme())
 
 @app.route('/commune/ban/<int:code_insee>')
 def test(code_insee):
