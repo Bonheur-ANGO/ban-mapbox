@@ -5,6 +5,7 @@ import { VectorTile } from '@mapbox/vector-tile';
 import { getCommunes } from './helpers/getCommunes';
 import { zoomOnCommune } from './helpers/zoomOnCommune';
 import { verifyCodeInsee } from './helpers/verifyCodeInsee';
+import { displayTronconsFusionned } from './helpers/displayTronconsFusionned';
 
 
 
@@ -102,17 +103,21 @@ map.on('click', (e) => {
     .filter((layer) => layer.source === 'ban')
     .map((layer) => layer.id);
 
-    const mat = allLayers
+    const ft = allLayers
     .filter((layer) => layer.source === 'fusion-troncon')
+    .map((layer) => layer.id);
+
+    const jta = allLayers
+    .filter((layer) => layer.source === 'jointure-adresse')
     .map((layer) => layer.id);
 
 
 
   const allFeatures = map.queryRenderedFeatures(e.point, {
-    layers: [...banLayers, ...bdTopoLayers, ...tronconsLayers, ...mat], 
+    layers: [...banLayers, ...bdTopoLayers, ...tronconsLayers, ...ft, ...jta], 
   });
 
-
+  //display metadata
   if (allFeatures.length > 0) {
     // get the first feature
     const addressFeature = allFeatures[0];
@@ -130,8 +135,11 @@ map.on('click', (e) => {
 
     ;
   } else {
-    console.log("Aucune adresse trouvée");
+    console.log("Aucun objet trouvée");
   }
+
+
+
 
 });
 
@@ -153,39 +161,47 @@ zoomBtn.addEventListener("click", ()=>{
 const geometricMatchingBtn = document.getElementById('geomatching')
 geometricMatchingBtn.addEventListener('click', ()=>{
   const code_insee = communeInput.value
-  //verifyCodeInsee(map, communeInput.value)
-  let apiUrl = "http://127.0.0.1:5000/commune/appariement-geometrique/"
-    fetch(apiUrl)
-        .then((response) => {
-            if (!response.ok) {
-            throw new Error("Erreur lors de la récupération des données de l'API");
-            }
-            return response.json();
-        })
-        .then((features) => {
-          console.log(features);
-          map.addSource('fusion-troncon', {
-            'type': 'geojson',
-            'data': {
-              'type': 'FeatureCollection',
-              'features': features
-          }
-          });
-        
-            map.addLayer({
-              'id': 'fusion-line',
-              'type': 'line',
-              'source': 'fusion-troncon',
-              'paint': {
-                'line-width': 2,
-                'line-color': '#8e44ad'
-            }
-          });
+  verifyCodeInsee(map, code_insee, displayTronconsFusionned(map, code_insee))
   
-        })
-        .catch((error) => {
-            console.error("Erreur lors de la récupération des données de l'API:", error);
+  let apiUrl = "http://127.0.0.1:5000/commune/ban/jointure/" + code_insee
+  fetch(apiUrl)
+      .then((response) => {
+          if (!response.ok) {
+          throw new Error("Erreur lors de la récupération des données de l'API");
+          }
+          return response.json();
+      })
+      .then((features) => {
+        console.log(features);
+        map.addSource('jointure-adresse', {
+          'type': 'geojson',
+          'data': features
+        });
+      
+          map.addLayer({
+            'id': 'jointure-adresse-line',
+            'type': 'line',
+            'source': 'jointure-adresse',
+            'paint': {
+              'line-width': 5,
+              'line-color': '#8e44ad'
+          }
         });
 
+      })
+      .catch((error) => {
+          console.error("Erreur lors de la récupération des données de l'API:", error);
+      });
 })
+
+
+
+map.on('click', 'fusion-line', function (e) {
+  if (e.features.length > 0) {
+      var clickedId = e.features[0].properties['identifiant_voie'];
+
+      // Met à jour le filtre pour inclure l'identifiant de la ligne sur laquelle vous avez cliqué
+      map.setFilter('fusion-line-highlight', ['==', 'identifiant_voie', clickedId]);
+  }
+});
 

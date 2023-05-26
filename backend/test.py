@@ -54,5 +54,4 @@ print(normalize_street_name.format("PAS BIR-HAKEIM"))
 '''
 gm = GeometricMatchingController()
 
-for el in gm.matchingOdonyme():
-    print(el)
+print(gm.get_line_adress_by_voie('94067'))

@@ -1,9 +1,10 @@
 from database.DbConfig import DbConfig
 from shapely import wkt, wkb
-from shapely.geometry import LineString, Point, mapping
+from shapely.geometry import LineString, Point, shape, mapping
 from models.Commune import Commune
 from models.FusionTroncon import FusionTroncon
 import os
+import json
 from shapely.ops import nearest_points
 from controllers.CommuneController import CommuneController
 from helpers.NormalizeStreetName import NormalizeStreetName
@@ -12,12 +13,14 @@ import geopandas as gpd
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, text
+from collections import defaultdict
 
 
 class GeometricMatchingController:
     def __init__(self) :
         self.db = DbConfig()
         self.cursor = self.db.connexion()
+        self.commune_ctrl = CommuneController()
         self.engine = create_engine("postgresql://" + os.getenv("PG_USER_BDUNI") + ":" + os.getenv("PG_PASSWORD_BDUNI")+ "@" + os.getenv("PG_HOST_BDUNI")+ ":" + os.getenv("PG_PORT_BDUNI") + "/" + os.getenv("PG_NAME_BDUNI"))
         
     
@@ -69,51 +72,26 @@ class GeometricMatchingController:
         feature_collection = geojson.FeatureCollection(features)
         return feature_collection
     
-    def matchingOdonyme(self):
+    def getTronconsFusionned(self, code_insee):
         '''commune_ctrl = CommuneController()
         adresses = commune_ctrl.get_all_adress_by_commune(94067)
         adresses_gpd = gpd.GeoDataFrame.from_features(adresses)
         groupes = adresses_gpd.groupby('nom_voie')'''
         Session = sessionmaker(bind=self.engine)
         session = Session()
-        sql = text("""
-                   WITH 
-                    troncon_gauche AS (
-                        SELECT identifiant_voie_1_gauche AS identifiant_voie, 
-                        ST_Collect(geometrie) AS geometrie
-                        FROM troncon_de_route
-                        WHERE insee_commune_gauche = '94067'
-                        GROUP BY identifiant_voie_1_gauche
-                    ),
+        sql = text(f"""
+                   SELECT v.cleabs AS identifiant_voie, type_voie, v.nom_minuscule, v.nom_initial_troncon, ST_AsText(ST_Transform(ST_SetSRID(ST_LineMerge(ST_Union(t.geometrie)), 2154),4326)) AS geometrie, t.gcms_detruit
+                    FROM voie v
+                    JOIN troncon_de_route t
+                    ON v.id_pseudo_fpb = t.identifiant_voie_1_gauche OR v.id_pseudo_fpb = t.identifiant_voie_1_droite
+                    WHERE v.code_insee =\'{code_insee}\' AND t.gcms_detruit = 'false' AND v.gcms_detruit = 'false'
+                    GROUP BY v.cleabs, t.gcms_detruit
+                    ORDER BY nom_minuscule
 
-                    troncon_droit AS (
-                        SELECT identifiant_voie_1_droite AS identifiant_voie, 
-                        ST_Collect(geometrie) AS geometrie
-                        FROM troncon_de_route
-                        WHERE insee_commune_droite = '94067'
-                        GROUP BY identifiant_voie_1_droite
-                    ),
 
-                    troncon_total AS (
-                        SELECT * FROM troncon_gauche
-                        UNION ALL
-                        SELECT * FROM troncon_droit
-                    )
-
-                    SELECT 
-                        tt.identifiant_voie, v.nom_minuscule, v.nom_initial_troncon,
-                        ST_AsText(ST_Transform(ST_SetSRID(ST_LineMerge(tt.geometrie), 2154),4326)) AS geometrie
-                    FROM 
-                        troncon_total tt
-                    JOIN 
-                        voie v
-                    ON 
-                        v.id_pseudo_fpb = tt.identifiant_voie
-                    GROUP BY 
-                        tt.identifiant_voie, v.nom_minuscule, tt.geometrie, v.nom_initial_troncon 
-                    ORDER BY v.nom_initial_troncon 
 
                    """)
+        
         result = session.execute(sql)
         columns = result.keys()
         features = []
@@ -124,8 +102,29 @@ class GeometricMatchingController:
                 "nom_initial_troncon": data['nom_initial_troncon'],
                 "nom_minuscule": data['nom_minuscule'],
                 "identifiant_voie": data['identifiant_voie'],
+                "type_voie": data['type_voie'],
             })
             features.append(feature)
         return features
         
+    
+    def get_line_adress_by_voie(self, code_insee):
+        geojson_data = self.commune_ctrl.get_all_adress_by_commune(code_insee)
+
+        # Group features by street name
+        features_by_voie = defaultdict(list)
+        for feature in geojson_data['features']:
+            features_by_voie[feature['properties']['nom_voie']].append(feature)
+
+        # Create a line for each street using the points of each feature
+        lines = []
+        for voie, features in features_by_voie.items():
+            points = [shape(feature['geometry']) for feature in features]
+            if len(points) > 1:
+                line = LineString(points)
+                lines.append(geojson.Feature(geometry=mapping(line), 
+                                            properties={'nom_voie': voie}))
+
+        # Return a feature collection with the lines
+        return geojson.FeatureCollection(lines)
         

@@ -6,9 +6,19 @@ export function zoomOnCommune(map, code_insee) {
     if (map.getSource("commune")) {
         map.removeLayer("commune-layer")
         map.removeSource("commune")
-        map.removeLayer("troncons-line-layer")
-        map.removeSource("troncons")
-    }
+        map.removeLayer("ban-adresses")
+        map.removeSource("ban")
+
+        if(map.getSource("fusion-troncon")){
+          map.removeLayer("fusion-line")
+          map.removeLayer("fusion-line-highlight")
+          map.removeSource("fusion-troncon")
+      }
+    } 
+    
+    
+
+
     
     let apiUrl = `https://geo.api.gouv.fr/communes?code=${code_insee}&format=geojson&geometry=contour`
     fetch(apiUrl)
