@@ -11,10 +11,7 @@ export function displayTronconsFusionned(map, code_insee) {
           console.log(features);
           map.addSource('fusion-troncon', {
             'type': 'geojson',
-            'data': {
-              'type': 'FeatureCollection',
-              'features': features
-          }
+            'data': features
           });
         
             map.addLayer({

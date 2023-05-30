@@ -13,9 +13,12 @@ class NormalizeStreetName:
         for abbr, full in self.abbreviations.items():
             if pd.isna(abbr) or pd.isna(full):
                 continue
+            name = name.lower()
+            name = re.sub(r'\b'+re.escape(abbr)+r'\b', full, name, flags=re.IGNORECASE)#
+            name = name.replace("é","e")
+            name = name.replace("à","e")
             
-            name = re.sub(r'\b'+re.escape(abbr)+r'\b', full, name, flags=re.IGNORECASE).upper()
 
         
-        return name
+        return name.upper()
             

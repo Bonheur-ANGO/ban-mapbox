@@ -1,5 +1,5 @@
 import mapboxgl  from 'mapbox-gl';
-import { getTronconsByCommune } from './getTronconsByCommune';
+import { getLinkToSupportObject } from './getLinkToSupportObject';
 import { displayBanAdress } from './displayBanAdress';
 
 export function zoomOnCommune(map, code_insee) {
@@ -8,6 +8,17 @@ export function zoomOnCommune(map, code_insee) {
         map.removeSource("commune")
         map.removeLayer("ban-adresses")
         map.removeSource("ban")
+
+
+        if (map.getSource("objets-support")) {
+          map.removeLayer("objets-support-line-layer")
+          map.removeSource("objets-support")
+        }
+
+        if (map.getSource("jointure-adresse")) {
+          map.removeLayer("jointure-adresse-line")
+          map.removeSource("jointure-adresse")
+        }
 
         if(map.getSource("fusion-troncon")){
           map.removeLayer("fusion-line")

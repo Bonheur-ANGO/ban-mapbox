@@ -53,5 +53,6 @@ print(filtered_data)'''
 print(normalize_street_name.format("PAS BIR-HAKEIM"))
 '''
 gm = GeometricMatchingController()
+tc = TronconController()
 
-print(gm.get_line_adress_by_voie('94067'))
+print(tc.get_all_troncon('94067'))

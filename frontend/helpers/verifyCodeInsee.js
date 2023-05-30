@@ -1,5 +1,5 @@
 
-export function verifyCodeInsee(map, code_insee, callbackFunction) {
+export function verifyCodeInsee(map, code_insee, ...callbackFunction) {
     let apiUrl = "http://127.0.0.1:5000/liste_communes"
     fetch(apiUrl)
     .then((response) => {

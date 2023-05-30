@@ -6,6 +6,7 @@ from models.FusionTroncon import FusionTroncon
 import os
 import json
 from shapely.ops import nearest_points
+from helpers.NormalizeStreetName import NormalizeStreetName
 from controllers.CommuneController import CommuneController
 from helpers.NormalizeStreetName import NormalizeStreetName
 import geojson
@@ -105,7 +106,7 @@ class GeometricMatchingController:
                 "type_voie": data['type_voie'],
             })
             features.append(feature)
-        return features
+        return geojson.FeatureCollection(features)
         
     
     def get_line_adress_by_voie(self, code_insee):
@@ -126,5 +127,64 @@ class GeometricMatchingController:
                                             properties={'nom_voie': voie}))
 
         # Return a feature collection with the lines
-        return geojson.FeatureCollection(lines)
+        #return geojson.FeatureCollection(lines)
+        
+        
+    
+    def link_to_support_object(self, code_insee):
+        Session = sessionmaker(bind=self.engine)
+        session = Session()
+        sql = text(f"""
+                        
+                        select lien_vers_objet_support, cote, gcms_detruit, insee_commune, ST_AsText(ST_Transform(ST_SetSRID(ST_LineMerge(ST_Union(geometrie_lien)), 2154),4326)) AS geometrie
+                        from adresse_ban 
+                        WHERE gcms_detruit = 'false' AND insee_commune = \'{code_insee}\'
+                        GROUP BY lien_vers_objet_support, cote, gcms_detruit, insee_commune
+                        """)
+        
+        result = session.execute(sql)
+        features = []
+        columns = result.keys()
+        features = []
+        for row in result.fetchall():
+            data = dict(zip(columns, row))
+            shape = wkt.loads(data['geometrie'])
+            feature = geojson.Feature(geometry=shape, properties={
+            "lien_vers_objet_support" : row.lien_vers_objet_support,
+            "cote": row.cote,
+            "insee_commune": row.insee_commune
+            })
+            features.append(feature)
+            feature_collection = geojson.FeatureCollection(features)
+        return feature_collection
+    
+    
+    def geometric_matching(self, code_insee):
+        data_ban = self.get_line_adress_by_voie(code_insee)
+        data_bd_uni = self.getTronconsFusionned(code_insee)
+        nm = NormalizeStreetName()
+        
+        if isinstance(data_bd_uni, dict):
+            data_bd_uni = data_bd_uni['features']
+        if isinstance(data_ban, dict):
+            data_ban = data_ban['features']
+        
+        features_ban  = [{'geometry': shape(feature['geometry']), 'properties': feature['properties']} for feature in data_ban]
+        features_bd_uni = [{'geometry': shape(feature['geometry']), 'properties': feature['properties']} for feature in data_bd_uni]
+        
+        alerts = []
+        
+        for feature_ban in features_ban:
+            nearest_feature_bd_uni = min(features_bd_uni, key=lambda x: feature_ban['geometry'].distance(x['geometry']))
+            
+            if nm.format(feature_ban['properties']['nom_voie']) != nm.format(nearest_feature_bd_uni['properties']['nom_minuscule']):
+                #print(f"Alert: Mismatch found for voie {nm.format(feature_ban['properties']['nom_voie'])}, {nm.format(nearest_feature_bd_uni['properties']['nom_minuscule'])}")
+                alerts.append({
+                    'geometry': mapping(nearest_feature_bd_uni['geometry']),
+                    'properties_ban': feature_ban['properties'],
+                    'properties_bd_uni': nearest_feature_bd_uni['properties']
+                })
+        
+        return geojson.FeatureCollection(alerts)
+                
         

@@ -1,19 +1,19 @@
-export function getTronconsByCommune(map, code_insee){
-    fetch('http://127.0.0.1:5000/commune/troncons/'+ code_insee)
+export function getLinkToSupportObject(map, code_insee){
+    fetch('http://127.0.0.1:5000/commune/objets_supports/'+ code_insee)
   .then(response => response.json())
   .then(data => {
     console.log(data);
-    map.addSource("troncons", {
+    map.addSource("objets-support", {
       type: "geojson",
       data: data,
     });
 
     map.addLayer({
-      id: 'troncons-line-layer',
+      id: 'objets-support-line-layer',
       type: "line",
-      source: 'troncons',
+      source: 'objets-support',
       'paint': {
-        'line-width': 2,
+        'line-width': 5,
         'line-color': [
             'match',
             ['get', 'nature'],

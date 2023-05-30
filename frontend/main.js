@@ -6,6 +6,9 @@ import { getCommunes } from './helpers/getCommunes';
 import { zoomOnCommune } from './helpers/zoomOnCommune';
 import { verifyCodeInsee } from './helpers/verifyCodeInsee';
 import { displayTronconsFusionned } from './helpers/displayTronconsFusionned';
+import { mergedAdress } from './helpers/mergedAddress';
+import { getLinkToSupportObject } from './helpers/getLinkToSupportObject';
+import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 
 
 
@@ -22,6 +25,8 @@ const map = new mapboxgl.Map({
   center: [2.349014, 48.864716],
   zoom: 9
 });
+
+
 
 
 map.on('load', () => {
@@ -161,37 +166,37 @@ zoomBtn.addEventListener("click", ()=>{
 const geometricMatchingBtn = document.getElementById('geomatching')
 geometricMatchingBtn.addEventListener('click', ()=>{
   const code_insee = communeInput.value
-  verifyCodeInsee(map, code_insee, displayTronconsFusionned(map, code_insee))
+  verifyCodeInsee(map, code_insee, getLinkToSupportObject(map, code_insee) ,displayTronconsFusionned(map, code_insee), /*mergedAdress(map, code_insee)*/)
+  /*let apiUrl = "http://127.0.0.1:5000/commune/appariement_geometrique/" + code_insee
+    fetch(apiUrl)
+        .then((response) => {
+            if (!response.ok) {
+            throw new Error("Erreur lors de la récupération des données de l'API");
+            }
+            return response.json();
+        })
+        .then((features) => {
+          console.log(features);
+          map.addSource('alert', {
+            'type': 'geojson',
+            'data': features
+          });
+        
+            map.addLayer({
+              'id': 'alert-line',
+              'type': 'line',
+              'source': 'alert',
+              'paint': {
+                'line-width': 5,
+                'line-color': '#f1c40f'
+            }
+          });
   
-  let apiUrl = "http://127.0.0.1:5000/commune/ban/jointure/" + code_insee
-  fetch(apiUrl)
-      .then((response) => {
-          if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des données de l'API");
-          }
-          return response.json();
-      })
-      .then((features) => {
-        console.log(features);
-        map.addSource('jointure-adresse', {
-          'type': 'geojson',
-          'data': features
-        });
-      
-          map.addLayer({
-            'id': 'jointure-adresse-line',
-            'type': 'line',
-            'source': 'jointure-adresse',
-            'paint': {
-              'line-width': 5,
-              'line-color': '#8e44ad'
-          }
-        });
-
-      })
-      .catch((error) => {
-          console.error("Erreur lors de la récupération des données de l'API:", error);
-      });
+        })
+        .catch((error) => {
+            console.error("Erreur lors de la récupération des données de l'API:", error);
+        });*/
+  
 })
 
 
