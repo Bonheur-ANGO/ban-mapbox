@@ -3,22 +3,23 @@ body {
   padding: 0; 
 }
 
-#map { 
-  position: absolute; 
+/*#map { 
+  position: relative; 
   top: 0; 
-  bottom: 0; 
+  bottom: -50; 
   width: 100%; 
-}
+}*/
 
 #search-container{
   z-index: 2;
-  position: relative;
+  position: absolute;
+  width: 80%;
 }
 
 #search-container input[type=text] {
   height: 50%;
   min-width: 16%;
-  width: 18%;
+  width: 23%;
   border-radius: 5px;
   border: 1px solid lightgray;
   font-size: 1.5rem;
@@ -26,7 +27,7 @@ body {
 }
 
 #search-container input[type=text]:focus{
-  width: 22%;
+  width: 30%;
 }
 
 
@@ -39,7 +40,7 @@ body {
   top: 100%;
   left: 0;
   z-index: 100;
-  width: 22%;
+  width: 30%;
 }
 .dropdown li {
   cursor: pointer;

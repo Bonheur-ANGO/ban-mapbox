@@ -25,11 +25,14 @@ const map = new mapboxgl.Map({
   center: [2.349014, 48.864716],
   zoom: 9
 });
+let marker = new mapboxgl.Marker()
 
 
-
-
+const searchInput = document.getElementById("search-input")
 map.on('load', () => {
+  searchInput.addEventListener('input', ()=>{
+    searchAddress(searchInput.value, map, marker)
+  })
   // Ajouter la source de tuiles vectorielles BAN après le chargement de la carte
   /*map.addSource('ban', {
       type: 'vector',
